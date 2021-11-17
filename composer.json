@@ -1,0 +1,44 @@
+{
+    "name": "gurucomkz/silverstripe-critical-path-css",
+    "description": "Critical Path CSS compiler/cacher for SilverStripe",
+    "license": "BSD-3-Clause",
+    "type": "silverstripe-vendormodule",
+    "keywords": [
+        "silverstripe",
+        "css",
+        "criticalpath",
+        "pagespeed"
+    ],
+    "authors": [
+        {
+            "name": "Sergey Shevchenko",
+            "homepage": "http://github.com/gurucomkz"
+        }
+    ],
+    "require": {
+        "silverstripe/framework": "^4"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "Gurucomkz\\Critpath\\": "src/"
+        }
+    },
+    "scripts": {
+        "pre-package-uninstall": "rm -rf node_modules",
+        "post-package-install": [
+            "Composer\\Config::disableProcessTimeout",
+            "yarn || npm install"
+        ],
+        "post-package-update": [
+            "Composer\\Config::disableProcessTimeout",
+            "yarn || npm update"
+        ]
+    },
+    "config": {
+        "process-timeout": 0
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

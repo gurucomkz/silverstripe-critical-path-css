@@ -1,0 +1,6 @@
+---
+Name: critpath
+---
+SilverStripe\CMS\Controllers\ContentController:
+  extensions:
+    - Gurucomkz\Critpath\Extensions\ControllerExtension

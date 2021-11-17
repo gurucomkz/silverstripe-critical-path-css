@@ -26,6 +26,12 @@ Install via composer and do `?flush=1`.
 composer require --prefer-dist gurucomkz/silverstripe-critical-path-css "dev-master"
 ```
 
+Install required packages inside the package's directory with `yarn` or `npm`.
+```bash
+cd vendor/gurucomkz/silverstripe-critical-path-css
+yarn || npm
+```
+
 ## Usage
 
 This is intended to be run on the target server.

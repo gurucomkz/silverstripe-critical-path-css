@@ -3,6 +3,8 @@ namespace Gurucomkz\Critpath\Helpers;
 
 use Exception;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Control\Director;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DataObject;
 
 /**
@@ -10,6 +12,21 @@ use SilverStripe\ORM\DataObject;
  */
 class CritpathHelper
 {
+    public static function doIncludeExternal()
+    {
+        return self::config()->get('include_external');
+    }
+
+    public static function config()
+    {
+        return Config::forClass('Gurucomkz\Critpath');
+    }
+
+    public static function isLocalFile($file)
+    {
+        return Director::is_relative_url($file) || preg_match('/^\//', $file);
+    }
+
     public static function getCriticalCSS(SiteTree $page)
     {
         $filename = self::cacheFilename($page);

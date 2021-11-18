@@ -7,6 +7,7 @@ use Page;
 use SilverStripe\CMS\Controllers\ContentController;
 use SilverStripe\CMS\Controllers\RootURLController;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\Session;
 use SilverStripe\Control\SimpleResourceURLGenerator;
@@ -26,11 +27,17 @@ class GenerateCriticalPathCSS extends BuildTask
     /** @var Requirements_Backend */
     private $backend;
 
+    /** @var SimpleResourceURLGenerator */
+    private $urlGenerator;
+
     public function __construct()
     {
         parent::__construct();
         $this->critpathScript = realpath(__DIR__ . '/../../cli.js');
         $this->backend = Requirements::backend();
+
+        $this->urlGenerator = Injector::inst()->get(ResourceURLGenerator::class);
+        $this->urlGenerator->setNonceStyle(null);
     }
 
 
@@ -62,12 +69,34 @@ class GenerateCriticalPathCSS extends BuildTask
         return $pageHTML;
     }
 
+    public function buildCSSList()
+    {
+        $allCSS = $this->backend->getCSS();
+        $cssFiles = [];
+        foreach ($allCSS as $cssTmpPath => $props) {
+            if (CritpathHelper::doIncludeExternal() && Director::is_absolute_url($cssTmpPath)) {
+                $localCSSVersionPath = TEMP_PATH . 'critpath-' . md5($cssTmpPath) . '.css';
+                if (!file_exists($localCSSVersionPath)) {
+                    $remoteContents = file_get_contents($cssTmpPath);
+                    if (!file_put_contents($localCSSVersionPath, $remoteContents)) {
+                        throw new Exception('FAILED TO WRITE TMP CSS FILE');
+                    }
+                }
+                $cssFiles[] = $localCSSVersionPath;
+            } else {
+                $cssUrl = $this->urlGenerator->urlForResource($cssTmpPath);
+                if ($cssUrl) {
+                    $cssPath = PUBLIC_PATH . $cssUrl;
+                    $cssFiles[] = $cssPath;
+                }
+            }
+        }
+        return $cssFiles;
+    }
+
     public function run($request)
     {
         define('CRITPATH_SCANNER_RUNNING', true);
-        /** @var SimpleResourceURLGenerator */
-        $urlGenerator = Injector::inst()->get(ResourceURLGenerator::class);
-        $urlGenerator->setNonceStyle(null);
 
         Versioned::set_stage(Versioned::LIVE);
         $pages = Page::get();
@@ -86,16 +115,8 @@ class GenerateCriticalPathCSS extends BuildTask
                     throw new Exception('FAILED TO WRITE TMP FILE');
                 }
 
-                $allCSS = $this->backend->getCSS();
+                $cssFiles = $this->buildCSSList();
 
-                $cssFiles = [];
-                foreach ($allCSS as $cssTmpPath => $props) {
-                    $cssUrl = $urlGenerator->urlForResource($cssTmpPath);
-                    if ($cssUrl) {
-                        $cssPath = PUBLIC_PATH . $cssUrl;
-                        $cssFiles[] = $cssPath;
-                    }
-                }
                 if (count($cssFiles)) {
                     $result = $this->generateCriticalPathCSS($localPageHTMLPath, $cssFiles);
 

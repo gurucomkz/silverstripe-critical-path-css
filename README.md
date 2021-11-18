@@ -10,8 +10,11 @@ and processes the HTML with [penthouse](https://github.com/pocketjoso/penthouse)
 injects the latter into pages' during regular requests HTML and postpones all the already inlcluded local(!) CSS files using 
 a special javascript snippet.
 
+If you choose to involve external CSS files (see Configuration below) they will be downloaded and stored in cache.
+
 ### Limitations
-Firefox doesn't seem to like the postponing of CSS files and will most likely not gain any real speed boost.
+* All the CSS files you want to involve must be included using `Requirements::css()` or `Requirements::themedCSS()`.
+* Firefox doesn't seem to like the postponing of CSS files and will most likely not gain any real speed boost.
 
 ## Requirements
 
@@ -41,6 +44,11 @@ sake dev/tasks/GenerateCriticalPathCSS
 ```
 This task may take a lot of time depending on amount of pages on the website and effort required to produce their HTML. Please, note that since this command is executed in CLI caches produced by your web server are not applicable.
 
+## Configuration
+```yaml
+Gurucomkz\Critpath:
+  # involve the external css files
+  include_external: true # default: false
 ## TODO
 
 * Allow configuring selectors that must be included into the critical path CSS

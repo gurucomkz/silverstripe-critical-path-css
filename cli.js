@@ -39,11 +39,11 @@ keys.forEach(key => {
 
 if(!params.url) {
     console.error("URL not specified");
-    exit(1);
+    exit(10);
 }
 if(!params.cssString.length) {
     console.error("Source CSS not specified");
-    exit(2);
+    exit(11);
 }
 penthouse(params)
   .then(criticalCss => {

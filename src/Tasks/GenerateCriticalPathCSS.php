@@ -123,6 +123,9 @@ class GenerateCriticalPathCSS extends BuildTask
 
         @exec($cmd, $result, $errorCode);
         if ($errorCode) {
+            if ($errorCode == 1) {
+                die("ERROR: JS Libraries not configured. \nPlease, run 'yarn' or 'npm install' in " . dirname(dirname(__DIR__)) . "\n");
+            }
             throw new Exception("JS file exited with error code $errorCode", 1);
         }
         $result = implode($result);

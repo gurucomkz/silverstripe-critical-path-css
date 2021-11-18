@@ -78,7 +78,7 @@ class GenerateCriticalPathCSS extends BuildTask
         $cssFiles = [];
         foreach ($allCSS as $cssTmpPath => $props) {
             if (CritpathHelper::doIncludeExternal() && Director::is_absolute_url($cssTmpPath)) {
-                $localCSSVersionPath = TEMP_PATH . 'critpath-' . md5($cssTmpPath) . '.css';
+                $localCSSVersionPath = TEMP_PATH . '/critpath-' . md5($cssTmpPath) . '.css';
                 if (!file_exists($localCSSVersionPath)) {
                     $remoteContents = file_get_contents($cssTmpPath);
                     if (!file_put_contents($localCSSVersionPath, $remoteContents)) {
@@ -122,7 +122,7 @@ class GenerateCriticalPathCSS extends BuildTask
                 $pageHTML = $this->getPageHTML($page);
                 echo "\tHTML Size: " . strlen($pageHTML) . "\n";
 
-                $localPageHTMLPath = TEMP_PATH . 'critpath-' . $page->ID . '.html';
+                $localPageHTMLPath = TEMP_PATH . '/critpath-' . $page->ID . '.html';
                 if (!file_put_contents($localPageHTMLPath, $pageHTML)) {
                     throw new StandardException('FAILED TO WRITE TMP FILE');
                 }

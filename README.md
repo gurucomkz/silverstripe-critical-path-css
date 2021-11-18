@@ -58,7 +58,7 @@ Gurucomkz\Critpath:
 ```
 ## TODO
 
-* Allow configuring selectors that must be included into the critical path CSS
+* Unut tests
 ## Contributing
 
 Please create an issue or a PR for any bugs you've found, or features you're missing.

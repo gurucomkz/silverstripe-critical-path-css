@@ -4,7 +4,6 @@ namespace Gurucomkz\Critpath\Tasks;
 use Exception;
 use Gurucomkz\Critpath\Helpers\CritpathHelper;
 use Page;
-use Psr\SimpleCache\CacheInterface;
 use SilverStripe\CMS\Controllers\ContentController;
 use SilverStripe\CMS\Controllers\RootURLController;
 use SilverStripe\CMS\Model\SiteTree;
@@ -12,8 +11,6 @@ use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\Session;
 use SilverStripe\Control\SimpleResourceURLGenerator;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\Core\Manifest\ModuleResource;
-use SilverStripe\Core\Manifest\ModuleResourceLoader;
 use SilverStripe\Core\Manifest\ResourceURLGenerator;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\Versioned\Versioned;
@@ -25,9 +22,6 @@ class GenerateCriticalPathCSS extends BuildTask
     private static $segment = 'GenerateCriticalPathCSS';
 
     private $critpathScript;
-
-    /** @var CacheInterface */
-    private $cache;
 
     /** @var Requirements_Backend */
     private $backend;

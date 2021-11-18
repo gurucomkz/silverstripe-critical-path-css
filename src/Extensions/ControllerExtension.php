@@ -25,6 +25,7 @@ class ControllerExtension extends Extension
             Requirements::customCSS($inline, 'critical-path-css');
             Requirements::customScript("
                 /* critical-path-loader */
+                function __CPCLOADCSS(e){var o = e.target;o.removeEventListener('load',__CPCLOADCSS);window.setTimeout(function(){o.rel='stylesheet'},500)}
                 function __CPCSSLOADER(s) {
                     var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
                     var head = document.getElementsByTagName('head')[0];
@@ -34,7 +35,7 @@ class ControllerExtension extends Extension
                         tag.rel = 'stylesheet';
                     } else {
                         tag.rel = 'preload';
-                        tag.addEventListener('load',__loadcss);
+                        tag.addEventListener('load',__CPCLOADCSS);
                         tag.as='style';
                     }
                     head.appendChild(tag);

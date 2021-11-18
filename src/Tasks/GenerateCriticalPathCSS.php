@@ -1,7 +1,8 @@
 <?php
 namespace Gurucomkz\Critpath\Tasks;
 
-use Exception;
+use Gurucomkz\Critpath\Exceptions\CriticalException;
+use Gurucomkz\Critpath\Exceptions\StandardException;
 use Gurucomkz\Critpath\Helpers\CritpathHelper;
 use Page;
 use SilverStripe\CMS\Controllers\ContentController;
@@ -21,6 +22,8 @@ use SilverStripe\View\Requirements_Backend;
 class GenerateCriticalPathCSS extends BuildTask
 {
     private static $segment = 'GenerateCriticalPathCSS';
+
+    private $currentPageID;
 
     private $critpathScript;
 
@@ -58,13 +61,13 @@ class GenerateCriticalPathCSS extends BuildTask
         $rsp = $ctrl->handleRequest($dummyRQ);
 
         if ($rsp->getStatusCode() !== 200) {
-            throw new Exception("BAD ERROR CODE: " . $rsp->getStatusCode());
+            throw new StandardException("BAD ERROR CODE: " . $rsp->getStatusCode());
         }
 
         $pageHTML = $rsp->getBody();
 
         if (!$pageHTML) {
-            throw new Exception("EMPTY PAGE");
+            throw new StandardException("EMPTY PAGE");
         }
         return $pageHTML;
     }
@@ -79,7 +82,7 @@ class GenerateCriticalPathCSS extends BuildTask
                 if (!file_exists($localCSSVersionPath)) {
                     $remoteContents = file_get_contents($cssTmpPath);
                     if (!file_put_contents($localCSSVersionPath, $remoteContents)) {
-                        throw new Exception('FAILED TO WRITE TMP CSS FILE');
+                        throw new StandardException('FAILED TO WRITE TMP CSS FILE');
                     }
                 }
                 $cssFiles[] = $localCSSVersionPath;
@@ -94,15 +97,24 @@ class GenerateCriticalPathCSS extends BuildTask
         return $cssFiles;
     }
 
+    /**
+     * @param HTTPRequest $request
+     * @return void
+     */
     public function run($request)
     {
         define('CRITPATH_SCANNER_RUNNING', true);
 
         Versioned::set_stage(Versioned::LIVE);
-        $pages = Page::get();
+        $pages = Page::get()->sort('ID ASC');
+        if ($resumeFromID = (int)$request->requestVar('resume')) {
+            $pages = $pages->filter('ID:GreaterThanOrEqual', $resumeFromID);
+        }
 
         foreach ($pages as $page) {
             /** @var Page $page */
+            $this->currentPageID = $page->ID;
+
             $localPageHTMLPath = null;
             Requirements::clear();
             echo $page->Link() . "\n";
@@ -112,7 +124,7 @@ class GenerateCriticalPathCSS extends BuildTask
 
                 $localPageHTMLPath = TEMP_PATH . 'critpath-' . $page->ID . '.html';
                 if (!file_put_contents($localPageHTMLPath, $pageHTML)) {
-                    throw new Exception('FAILED TO WRITE TMP FILE');
+                    throw new StandardException('FAILED TO WRITE TMP FILE');
                 }
 
                 $cssFiles = $this->buildCSSList();
@@ -123,11 +135,15 @@ class GenerateCriticalPathCSS extends BuildTask
                     CritpathHelper::setCriticalCSS($page, $result);
                     echo "\tCritical CSS size: " . strlen($result) . "\n";
                 }
-            } catch (\Throwable $th) {
+            } catch (StandardException $th) {
+                echo "\t\e[0;31m" . "ERROR: " . $th->getMessage() . "\e[0m\n";
+            } catch (CriticalException $th) {
+                echo "\t\e[0;31m" . "ERROR: " . $th->getMessage() . "\e[0m\n";
+                return;
+            } finally {
                 if ($localPageHTMLPath) {
                     @unlink($localPageHTMLPath);
                 }
-                echo "\t\e[0;31m" . "ERROR: " . $th->getMessage() . "\e[0m\n";
             }
         }
     }
@@ -145,9 +161,18 @@ class GenerateCriticalPathCSS extends BuildTask
         @exec($cmd, $result, $errorCode);
         if ($errorCode) {
             if ($errorCode == 1) {
-                die("ERROR: JS Libraries not configured. \nPlease, run 'yarn' or 'npm install' in " . dirname(dirname(__DIR__)) . "\n");
+                throw new CriticalException(
+                    "ERROR: JS Libraries not configured. \n" .
+                    "Please, run 'yarn' or 'npm install' in " . dirname(dirname(__DIR__)) . "\n"
+                );
             }
-            throw new Exception("JS file exited with error code $errorCode", 1);
+            if ($errorCode == -1) {
+                throw new CriticalException(
+                    "ERROR: nodejs failed. Not enough memory, maybe? \n" .
+                    "You can try to resume with 'sake dev/tasks/" . self::$segment . " resume={$this->currentPageID}\n"
+                );
+            }
+            throw new StandardException("JS file exited with error code $errorCode", 1);
         }
         $result = implode($result);
         return $result;

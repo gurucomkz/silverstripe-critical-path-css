@@ -6,6 +6,8 @@ use Gurucomkz\Critpath\Helpers\CritpathHelper;
 use Page;
 use Psr\SimpleCache\CacheInterface;
 use SilverStripe\CMS\Controllers\ContentController;
+use SilverStripe\CMS\Controllers\RootURLController;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\Session;
 use SilverStripe\Control\SimpleResourceURLGenerator;
@@ -38,11 +40,16 @@ class GenerateCriticalPathCSS extends BuildTask
     }
 
 
-    private function getPageHTML($page)
+    private function getPageHTML(SiteTree $page)
     {
         $session = Injector::inst()->create(Session::class, []);
         $ctrlClass = $page->getControllerName();
         $dummyRQ = new HTTPRequest('GET', '/');
+        if (RootURLController::should_be_on_root($page)) {
+            // dirty hack ?
+            $dummyRQ->setUrl(RootURLController::get_homepage_link() . '/index');
+            $dummyRQ->match('$URLSegment//$Action', true);
+        }
         $dummyRQ->setSession($session);
 
         /** @var ContentController */

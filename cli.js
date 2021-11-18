@@ -12,8 +12,15 @@ const argv = yargs(hideBin(process.argv)).argv
 var params = {
     url: null,
     cssString: '',
+    forceInclude: [],
 };
 const keys = Object.keys(argv);
+
+function includeSelector(s) {
+    const p = s.substr(0, 1) === '/' ? new RegExp(s.substr(1,s.length-2)) : s;
+    params.forceInclude.push(p);
+}
+
 keys.forEach(key => {
     switch(key) {
         case 'url':
@@ -26,6 +33,16 @@ keys.forEach(key => {
             if (Array.isArray(argv[key])) {
                 argv[key].forEach(p => {
                     params.cssString += fs.readFileSync(p);
+                });
+            }
+            break;
+        case 'forceInclude':
+            if ('string' === typeof argv[key]) {
+                includeSelector(argv[key]);
+            }
+            if (Array.isArray(argv[key])) {
+                argv[key].forEach(p => {
+                    includeSelector(p);
                 });
             }
             break;

@@ -49,6 +49,13 @@ This task may take a lot of time depending on amount of pages on the website and
 Gurucomkz\Critpath:
   # involve the external css files
   include_external: true # default: false
+  # ensure these selectors are a part of the critical path CSS
+  # see https://github.com/pocketjoso/penthouse#options for 'forceInclude'
+  force_css_selectors:
+    - ".abc"
+    - "#another"
+    - "/\\.slick.*/"
+```
 ## TODO
 
 * Allow configuring selectors that must be included into the critical path CSS

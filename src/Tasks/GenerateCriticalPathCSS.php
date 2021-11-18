@@ -150,14 +150,20 @@ class GenerateCriticalPathCSS extends BuildTask
 
     private function generateCriticalPathCSS($localPageHTMLPath, $cssFiles)
     {
-        $cssArg = '';
+        $args = '';
         foreach ($cssFiles as $cssPath) {
-            $cssArg .= " --css " . escapeshellarg($cssPath);
+            $args .= " --css " . escapeshellarg($cssPath);
+        }
+
+        $forceInclude = CritpathHelper::config()->get('force_css_selectors');
+        if (is_array($forceInclude)) {
+            foreach ($forceInclude as $cssSelector) {
+                $args .= " --forceInclude " . escapeshellarg($cssSelector);
+            }
         }
 
         $pageFullURL = escapeshellarg('file:///' . $localPageHTMLPath);
-        $cmd = "{$this->critpathScript} --url $pageFullURL $cssArg";
-
+        $cmd = "{$this->critpathScript} --url $pageFullURL $args";
         @exec($cmd, $result, $errorCode);
         if ($errorCode) {
             if ($errorCode == 1) {

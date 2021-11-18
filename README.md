@@ -58,7 +58,7 @@ Gurucomkz\Critpath:
 ```
 ## TODO
 
-* Unut tests
+* Unit tests
 ## Contributing
 
 Please create an issue or a PR for any bugs you've found, or features you're missing.
